@@ -30,18 +30,16 @@ export const signUpUser = async (mockedUser: User) => {
   const userNameInput = getters.getUsernameInput();
   const signUpButton = getters.getSignUpButton();
 
-  // await act(async () => {
-  await userEvent.type(userNameInput, mockedUser.username);
-  await userEvent.type(emailInput, mockedUser.email);
-  await userEvent.type(passwordInput, mockedUser.password);
-  expect(userNameInput).toHaveValue(mockedUser.username);
-  expect(emailInput).toHaveValue(mockedUser.email);
-  expect(passwordInput).toHaveValue(mockedUser.password);
-  await userEvent.click(signUpButton);
-  // });
+  await act(async () => {
+    await userEvent.type(userNameInput, mockedUser.username);
+    await userEvent.type(emailInput, mockedUser.email);
+    await userEvent.type(passwordInput, mockedUser.password);
+    expect(userNameInput).toHaveValue(mockedUser.username);
+    expect(emailInput).toHaveValue(mockedUser.email);
+    expect(passwordInput).toHaveValue(mockedUser.password);
+    await userEvent.click(signUpButton);
+  });
 };
-
-jest.setTimeout(10000);
 
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 afterEach(() => server.resetHandlers());
@@ -50,25 +48,95 @@ afterAll(() => server.close());
 describe("SignUp Component", () => {
   afterEach(() => jest.resetAllMocks());
   describe("Validation", () => {
+    afterEach(() => jest.resetAllMocks());
+
+    it("should display validation errors for invalid email", async () => {
+      render(<SignUp />);
+      const emailInput = getters.getEmailInput();
+      userEvent.type(emailInput, "test");
+      userEvent.click(document.body);
+      const validationMsg = await screen.findByText("Enter a valid email");
+      expect(validationMsg).toBeInTheDocument();
+    });
+
+    it("should display validation errors for short password", async () => {
+      render(<SignUp />);
+      const passwordInput = getters.getPasswordInput();
+      userEvent.type(passwordInput, "123");
+      userEvent.click(document.body);
+      const validationMsg = await screen.findByText(
+        "Password should be of minimum 8 characters length"
+      );
+      expect(validationMsg).toBeInTheDocument();
+    });
+
     it("should display success message on successful sign-up", async () => {
       render(<SignUp />);
-      debug();
-      const signUpButton = getters.getSignUpButton();
       await signUpUser(mockedUser);
-      debug();
-      await waitForElementToBeRemoved(signUpButton);
-      debug();
       await waitFor(() =>
         expect(screen.getByText("Sign Up Successfully!")).toBeInTheDocument()
       );
-      debug();
     });
-    // it("should display error message on sign-up failure", async () => {
-    //   render(<SignUp />);
-    //   await signUpUser(mockedUnSuccessUser);
-    //   await waitFor(() =>
-    //     expect(screen.getByText(/Error Signing Up!/)).toBeInTheDocument()
-    //   );
-    // });
+
+    it("should display error message on sign-up failure", async () => {
+      render(<SignUp />);
+      await signUpUser(mockedUnSuccessUser);
+      await waitFor(() =>
+        expect(screen.getByText(/Error Signing Up!/)).toBeInTheDocument()
+      );
+    });
+  });
+});
+
+describe("Form Interaction", () => {
+  afterEach(() => jest.resetAllMocks());
+  it("should enable Sign Up button when form is valid", async () => {
+    render(<SignUp />);
+    const userNameInput = getters.getUsernameInput();
+    const emailInput = getters.getEmailInput();
+    const passwordInput = getters.getPasswordInput();
+    const signUpButton = getters.getSignUpButton();
+    await act(async () => {
+      await userEvent.type(userNameInput, mockedUser.username);
+      await userEvent.type(emailInput, mockedUser.email);
+      await userEvent.type(passwordInput, mockedUser.password);
+      expect(signUpButton).toBeEnabled();
+    });
+  });
+
+  it("should disable Sign Up button when form is invalid", async () => {
+    render(<SignUp />);
+    const signUpButton = getters.getSignUpButton();
+    expect(signUpButton).toBeDisabled();
+  });
+
+  it("should update form fields on user input", async () => {
+    render(<SignUp />);
+    const userNameInput = getters.getUsernameInput();
+    const emailInput = getters.getEmailInput();
+    const passwordInput = getters.getPasswordInput();
+    await act(async () => {
+      await userEvent.type(userNameInput, mockedUser.username);
+      await userEvent.type(emailInput, mockedUser.email);
+      await userEvent.type(passwordInput, mockedUser.password);
+      expect(userNameInput).toHaveValue(mockedUser.username);
+      expect(emailInput).toHaveValue(mockedUser.email);
+      expect(passwordInput).toHaveValue(mockedUser.password);
+    });
+  });
+
+  it("should redirect user to home page after successful signup", async () => {
+    render(<SignUp />);
+    await signUpUser(mockedUser);
+    await waitFor(() =>
+      expect(screen.getByText(/^products/i)).toBeInTheDocument()
+    );
+  });
+
+  it("should show loading state on sign-up button during form submission", async () => {
+    render(<SignUp />);
+    const signUpButton = getters.getSignUpButton();
+    await signUpUser(mockedUser);
+    expect(signUpButton).toHaveAttribute("disabled");
   });
 });
