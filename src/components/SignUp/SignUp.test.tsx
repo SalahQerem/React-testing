@@ -86,57 +86,57 @@ describe("SignUp Component", () => {
       );
     });
   });
-});
 
-describe("Form Interaction", () => {
-  afterEach(() => jest.resetAllMocks());
-  it("should enable Sign Up button when form is valid", async () => {
-    render(<SignUp />);
-    const userNameInput = getters.getUsernameInput();
-    const emailInput = getters.getEmailInput();
-    const passwordInput = getters.getPasswordInput();
-    const signUpButton = getters.getSignUpButton();
-    await act(async () => {
-      await userEvent.type(userNameInput, mockedUser.username);
-      await userEvent.type(emailInput, mockedUser.email);
-      await userEvent.type(passwordInput, mockedUser.password);
-      expect(signUpButton).toBeEnabled();
+  describe("Form Interaction", () => {
+    afterEach(() => jest.resetAllMocks());
+    it("should enable Sign Up button when form is valid", async () => {
+      render(<SignUp />);
+      const userNameInput = getters.getUsernameInput();
+      const emailInput = getters.getEmailInput();
+      const passwordInput = getters.getPasswordInput();
+      const signUpButton = getters.getSignUpButton();
+      await act(async () => {
+        await userEvent.type(userNameInput, mockedUser.username);
+        await userEvent.type(emailInput, mockedUser.email);
+        await userEvent.type(passwordInput, mockedUser.password);
+        expect(signUpButton).toBeEnabled();
+      });
     });
-  });
 
-  it("should disable Sign Up button when form is invalid", async () => {
-    render(<SignUp />);
-    const signUpButton = getters.getSignUpButton();
-    expect(signUpButton).toBeDisabled();
-  });
-
-  it("should update form fields on user input", async () => {
-    render(<SignUp />);
-    const userNameInput = getters.getUsernameInput();
-    const emailInput = getters.getEmailInput();
-    const passwordInput = getters.getPasswordInput();
-    await act(async () => {
-      await userEvent.type(userNameInput, mockedUser.username);
-      await userEvent.type(emailInput, mockedUser.email);
-      await userEvent.type(passwordInput, mockedUser.password);
-      expect(userNameInput).toHaveValue(mockedUser.username);
-      expect(emailInput).toHaveValue(mockedUser.email);
-      expect(passwordInput).toHaveValue(mockedUser.password);
+    it("should disable Sign Up button when form is invalid", async () => {
+      render(<SignUp />);
+      const signUpButton = getters.getSignUpButton();
+      expect(signUpButton).toBeDisabled();
     });
-  });
 
-  it("should redirect user to home page after successful signup", async () => {
-    render(<SignUp />);
-    await signUpUser(mockedUser);
-    await waitFor(() =>
-      expect(screen.getByText(/^products/i)).toBeInTheDocument()
-    );
-  });
+    it("should update form fields on user input", async () => {
+      render(<SignUp />);
+      const userNameInput = getters.getUsernameInput();
+      const emailInput = getters.getEmailInput();
+      const passwordInput = getters.getPasswordInput();
+      await act(async () => {
+        await userEvent.type(userNameInput, mockedUser.username);
+        await userEvent.type(emailInput, mockedUser.email);
+        await userEvent.type(passwordInput, mockedUser.password);
+        expect(userNameInput).toHaveValue(mockedUser.username);
+        expect(emailInput).toHaveValue(mockedUser.email);
+        expect(passwordInput).toHaveValue(mockedUser.password);
+      });
+    });
 
-  it("should show loading state on sign-up button during form submission", async () => {
-    render(<SignUp />);
-    const signUpButton = getters.getSignUpButton();
-    await signUpUser(mockedUser);
-    expect(signUpButton).toHaveAttribute("disabled");
+    it("should redirect user to home page after successful signup", async () => {
+      render(<SignUp />);
+      await signUpUser(mockedUser);
+      await waitFor(() =>
+        expect(screen.getByText(/^products/i)).toBeInTheDocument()
+      );
+    });
+
+    it("should show loading state on sign-up button during form submission", async () => {
+      render(<SignUp />);
+      const signUpButton = getters.getSignUpButton();
+      await signUpUser(mockedUser);
+      expect(signUpButton).toHaveAttribute("disabled");
+    });
   });
 });
